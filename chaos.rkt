@@ -1,6 +1,6 @@
 #lang racket/base
 (require racket/contract/base
-         data/queue
+         racket/sequence
          racket/generic)
 
 (define-generics chaos
@@ -15,9 +15,8 @@
      60.0)
    (define (chaos-yield c e)
      (sync e))
-   (define iq (make-queue))
    (define (chaos-inputs c)
-     iq)
+     empty-sequence)
    (define (chaos-output! c os)
      (void))
    (define (chaos-label! c l)
@@ -31,7 +30,7 @@
   [chaos? (-> any/c boolean?)]
   [chaos-fps (-> chaos? flonum?)]
   [chaos-yield (-> chaos? evt? any)]
-  [chaos-inputs (-> chaos? queue?)]
-  [chaos-output! (-> chaos? vector? any)]
+  [chaos-inputs (-> chaos? sequence?)]
+  [chaos-output! (-> chaos? any/c any)]
   [chaos-label! (-> chaos? string? any)]
   [chaos-swap! (-> chaos? (-> any) any)]))
