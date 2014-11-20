@@ -6,17 +6,30 @@
          data/queue
          lux/chaos)
 
-(struct gui (depth-box events-box fps drawer frame refresh!)
+(struct *sbox (sema box))
+(define (sbox v)
+  (*sbox (make-semaphore 1) (box v)))
+(define (sbox-swap! sb new)
+  (match-define (*sbox sema b) sb)
+  (call-with-semaphore sema
+    (λ ()
+      (begin0 (unbox b)
+        (set-box! b new)))))
+(define (sbox-poke sb f)
+  (match-define (*sbox sema b) sb)
+  (call-with-semaphore sema
+    (λ () (f (unbox b)))))
+
+(struct gui (depth-box events-sbox fps drawer frame refresh!)
         #:methods gen:chaos
         [(define (chaos-fps c)
            (gui-fps c))
          (define (chaos-yield c e)
            (yield e))
          (define (chaos-inputs c)
-           (define eb (gui-events-box c))
+           (define eb (gui-events-sbox c))
            (define new-q (make-queue))
-           (define q (unbox eb))
-           (set-box! eb new-q)
+           (define q (sbox-swap! eb new-q))
            (in-queue q))
          (define (chaos-output! c o)
            (set-box! (gui-drawer c) o)
@@ -36,17 +49,17 @@
                   #:mode [mode 'draw]
                   #:width [init-w 800]
                   #:height [init-h 600])
-  (define events-box (box (make-queue)))
+  (define events-box (sbox (make-queue)))
   (define gframe%
     (class frame%
       (define/override (on-size w h)
         (refresh!))
       (define/augment (on-close)
-        (enqueue! (unbox events-box) 'close))
+        (sbox-poke events-box (λ (q) (enqueue! q 'close))))
       (define/override (on-subwindow-char w ke)
-        (enqueue! (unbox events-box) ke))
+        (sbox-poke events-box (λ (q) (enqueue! q ke))))
       (define/override (on-subwindow-event w me)
-        (enqueue! (unbox events-box) me))
+        (sbox-poke events-box (λ (q) (enqueue! q me))))
       (super-new)))
 
   (define drawer (box void))
