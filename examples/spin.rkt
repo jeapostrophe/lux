@@ -5,7 +5,8 @@
          racket/gui/base
          racket/class
          lux
-         lux/chaos/gui)
+         lux/chaos/gui
+         lux/chaos/gui/mouse)
 
 (define COLORS
   '("red" "orange" "yellow" "green" "blue" "indigo" "violet"))
@@ -21,9 +22,9 @@
              (match e
                ['close
                 (set! closed? #t)]
-               [(? (λ (x) (is-a? x mouse-event%)) me)
-                (set! x (send me get-x))
-                (set! y (send me get-y))]
+               [(? mouse-state? ms)
+                (set! x (mouse-state-x ms))
+                (set! y (mouse-state-y ms))]
                [(? (λ (x) (is-a? x key-event%)) ke)
                 (set! color (fxmodulo (fx+ 1 color) (length COLORS)))]))
            (match closed?
@@ -42,5 +43,5 @@
 
 (module+ main
   (call-with-chaos
-   (make-gui 60.0)
+   (make-gui/mouse (make-gui 60.0))
    (λ () (fiat-lux (spin 0 0 400 300)))))
