@@ -43,6 +43,9 @@
 
 (define (key-state-set? ks kc)
   (hash-ref (key-state-keys ks) kc #f))
+(define (key-state-set?! ks kc)
+  (begin0 (key-state-set? ks kc)
+    (hash-set! (key-state-keys ks) kc #f)))
 
 (provide
  (contract-out
@@ -63,5 +66,8 @@
    (-> key-state? (is-a?/c key-event%)
        any)]
   [key-state-set?
+   (-> key-state? (or/c char? key-code-symbol?)
+       boolean?)]
+  [key-state-set?!
    (-> key-state? (or/c char? key-code-symbol?)
        boolean?)]))

@@ -6,7 +6,7 @@
          data/queue
          lux/chaos)
 
-(struct gui (events-box fps drawer frame refresh!)
+(struct gui (depth-box events-box fps drawer frame refresh!)
         #:methods gen:chaos
         [(define (chaos-fps c)
            (gui-fps c))
@@ -22,7 +22,15 @@
            (set-box! (gui-drawer c) o)
            ((gui-refresh! c)))
          (define (chaos-label! c l)
-           (send (gui-frame c) set-label l))])
+           (send (gui-frame c) set-label l))
+         (define (chaos-swap! c t)
+           (define db (gui-depth-box c))
+           (define og (unbox db))
+           (set-box! db (add1 og))
+           (begin0 (t)
+             (if (zero? og)
+                 (send (gui-frame c) show #f)
+                 (set-box! db og))))])
 
 (define (make-gui fps
                   #:mode [mode 'draw]
@@ -75,9 +83,12 @@
   (define (refresh!)
     (send c refresh))
 
+  (send f center)
   (send f show #t)
 
-  (gui events-box fps drawer f refresh!))
+  (define depth-box (box 0))
+
+  (gui depth-box events-box fps drawer f refresh!))
 
 (provide
  (contract-out
