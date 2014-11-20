@@ -11,35 +11,32 @@
 (define COLORS
   '("red" "orange" "yellow" "green" "blue" "indigo" "violet"))
 
-(struct spin (layer ks ms color frame)
+(struct spin (layer color frame x y)
         #:methods gen:word
         [(define (word-label s ft)
            (lux-standard-label "Spin!" ft))
          (define (word-event w e)
-           ;; xxx remove mutation
-           (match-define (spin layer ks ms color f) w)
-           (define closed? #f)
-           (match e
-             ['close
-              (set! closed? #t)]
-             [(? mouse-event? me)
-              (mouse-state-update! ms me)]
-             [(? key-event? ke)
-              (key-state-update! ks ke)])
-           (when (key-state-set?! ks #\space)
-             (set! color (fxmodulo (fx+ 1 color) (length COLORS))))
-           (when (key-state-set?! ks #\return)
-             (spin-it! (add1 layer)))
-           (match (or closed?
-                      (key-state-set?! ks 'escape))
-             [#t
-              #f]
-             [#f
-              (spin layer ks ms color f)]))
+           (match-define (spin layer color f x y) w)
+           (cond
+            [(or (eq? e 'close)
+                 (and (key-event? e)
+                      (eq? (send e get-key-code) 'escape)))
+             #f]
+            [(and (key-event? e)
+                  (eq? (send e get-key-code) #\space))
+             (spin layer (fxmodulo (fx+ 1 color) (length COLORS)) f x y)]
+            [(mouse-event? e)
+             (spin layer color f
+                   (send e get-x) 
+                   (send e get-y))]
+            [(and (key-event? e)
+                  (eq? (send e get-key-code) #\return))
+             (spin-it (add1 layer))
+             w]
+            [else
+             w]))
          (define (word-output w)
-           (match-define (spin layer ks ms color f) w)
-           (define x (mouse-state-x ms))
-           (define y (mouse-state-y ms))
+           (match-define (spin layer color f x y) w)
            (lambda (width height dc)
              (send dc set-background (list-ref COLORS color))
              (send dc clear)
@@ -47,19 +44,16 @@
              (send dc set-origin x y)
              (send dc draw-text (format "~a: Spinning!" layer) 0 0)))
          (define (word-tick w)
-           (match-define (spin layer ks ms color f) w)
-           (spin layer ks ms color (fxmodulo (fx+ f 1) 360)))])
+           (match-define (spin layer color f x y) w)
+           (spin layer color (fxmodulo (fx+ f 1) 360) x y))])
 
-(define (spin-it! layer)
+(define (spin-it layer)
   (define s
-    (spin layer
-          (make-key-state)
-          (make-mouse-state)
-          0 0))
+    (spin layer 0 0 0 0))
   (fiat-lux s))
 
 (module+ main
   (call-with-chaos
    (make-gui 60.0)
    (λ ()
-     (spin-it! 0))))
+     (spin-it 0))))

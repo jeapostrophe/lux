@@ -49,45 +49,42 @@
 (define (factum-fiat-lux c w)
   (define fps (chaos-fps c))
   (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
+  (define (update-word w make-next-tick-evt f)
+    (define start-time (current-inexact-milliseconds))
+    (define new-w (f w))
+    (match new-w
+      [#f
+       (word-return w)]
+      [_
+       (chaos-output! c (word-output w))
+       (define end-time (current-inexact-milliseconds))
+       (define frame-time (fl- end-time start-time))
+       (define new-label
+         (word-label new-w frame-time))
+       (chaos-label! c new-label)
+       (define next-tick-evt (make-next-tick-evt start-time))
+       (body next-tick-evt new-w)]))
   (define (body tick-evt w)
     (chaos-yield
      c
-     ;; xxx merge these
      (choice-evt
       (handle-evt
        (chaos-event c)
        (λ (e)
-         (define start-time (current-inexact-milliseconds))
-         (define new-w (word-event w e))
-         (match new-w
-           [#f
-            (word-return w)]
-           [_
-            (chaos-output! c (word-output w))
-            (define end-time (current-inexact-milliseconds))
-            (define frame-time (fl- end-time start-time))
-            (define new-label
-              (word-label new-w frame-time))
-            (chaos-label! c new-label)
-            (body tick-evt new-w)])))
+         (update-word w
+                      (λ (start-time)
+                        tick-evt)
+                      (λ (w)
+                        (word-event w e)))))
       (handle-evt
        tick-evt
        (λ (_)
-         (define start-time (current-inexact-milliseconds))
-         (define new-w (word-tick w))
-         (match new-w
-           [#f
-            (word-return w)]
-           [_
-            (chaos-output! c (word-output w))
-            (define end-time (current-inexact-milliseconds))
-            (define frame-time (fl- end-time start-time))
-            (define new-label
-              (word-label new-w frame-time))
-            (chaos-label! c new-label)
-            (define next-time (fl+ start-time time-incr))
-            (define next-tick-evt (alarm-evt next-time))
-            (body next-tick-evt new-w)]))))))
+         (update-word w
+                      (λ (start-time)
+                        (define next-time (fl+ start-time time-incr))
+                        (define next-tick-evt (alarm-evt next-time))
+                        next-tick-evt)
+                      word-tick))))))
   (chaos-swap! c (λ () (body always-evt w))))
 
 (provide
