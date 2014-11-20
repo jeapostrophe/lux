@@ -9,11 +9,17 @@
 
 (define-generics word
   (word-label word frame-time)
-  (word-tick word events)
+  (word-event word evt)
+  (word-tick word)
+  (word-output word)
+  (word-return word)
   #:fallbacks
   [(define (word-label w frame-time)
      (lux-standard-label "Lux" frame-time))
-   (define (word-tick w es) (values w empty))])
+   (define (word-event w e) w)
+   (define (word-tick w) w)
+   (define (word-output w) empty)
+   (define (word-return w) w)])
 
 (define (lux-standard-label l frame-time)
   (~a l
@@ -46,25 +52,42 @@
   (define (body tick-evt w)
     (chaos-yield
      c
-     (handle-evt
-      tick-evt
-      (λ (_)
-        (define start-time (current-inexact-milliseconds))
-        (define inputs (chaos-inputs c))
-        (define-values (new-w outputs) (word-tick w inputs))
-        (match new-w
-          [#f
-           outputs]
-          [_
-           (chaos-output! c outputs)
-           (define end-time (current-inexact-milliseconds))
-           (define frame-time (fl- end-time start-time))
-           (define new-label
-             (word-label new-w frame-time))
-           (chaos-label! c new-label)
-           (define next-time (fl+ start-time time-incr))
-           (define next-tick-evt (alarm-evt next-time))
-           (body next-tick-evt new-w)])))))
+     ;; xxx merge these
+     (choice-evt
+      (handle-evt
+       (chaos-event c)
+       (λ (e)
+         (define start-time (current-inexact-milliseconds))
+         (define new-w (word-event w e))
+         (match new-w
+           [#f
+            (word-return w)]
+           [_
+            (chaos-output! c (word-output w))
+            (define end-time (current-inexact-milliseconds))
+            (define frame-time (fl- end-time start-time))
+            (define new-label
+              (word-label new-w frame-time))
+            (chaos-label! c new-label)
+            (body tick-evt new-w)])))
+      (handle-evt
+       tick-evt
+       (λ (_)
+         (define start-time (current-inexact-milliseconds))
+         (define new-w (word-tick w))
+         (match new-w
+           [#f
+            (word-return w)]
+           [_
+            (chaos-output! c (word-output w))
+            (define end-time (current-inexact-milliseconds))
+            (define frame-time (fl- end-time start-time))
+            (define new-label
+              (word-label new-w frame-time))
+            (chaos-label! c new-label)
+            (define next-time (fl+ start-time time-incr))
+            (define next-tick-evt (alarm-evt next-time))
+            (body next-tick-evt new-w)]))))))
   (chaos-swap! c (λ () (body always-evt w))))
 
 (provide

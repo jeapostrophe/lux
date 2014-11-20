@@ -1,12 +1,11 @@
 #lang racket/base
 (require racket/contract/base
-         racket/sequence
          racket/generic)
 
 (define-generics chaos
   (chaos-fps chaos)
   (chaos-yield chaos evt)
-  (chaos-inputs chaos)
+  (chaos-event chaos)
   (chaos-output! chaos outputs)
   (chaos-label! chaos label)
   (chaos-swap! chaos thunk)
@@ -15,8 +14,8 @@
      60.0)
    (define (chaos-yield c e)
      (sync e))
-   (define (chaos-inputs c)
-     empty-sequence)
+   (define (chaos-event c)
+     never-evt)
    (define (chaos-output! c os)
      (void))
    (define (chaos-label! c l)
@@ -30,7 +29,7 @@
   [chaos? (-> any/c boolean?)]
   [chaos-fps (-> chaos? flonum?)]
   [chaos-yield (-> chaos? evt? any)]
-  [chaos-inputs (-> chaos? sequence?)]
+  [chaos-event (-> chaos? evt?)]
   [chaos-output! (-> chaos? any/c any)]
   [chaos-label! (-> chaos? string? any)]
   [chaos-swap! (-> chaos? (-> any) any)]))

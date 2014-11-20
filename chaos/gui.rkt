@@ -3,34 +3,17 @@
          racket/class
          racket/contract/base
          racket/gui/base
-         data/queue
+         racket/async-channel
          lux/chaos)
 
-(struct *sbox (sema box))
-(define (sbox v)
-  (*sbox (make-semaphore 1) (box v)))
-(define (sbox-swap! sb new)
-  (match-define (*sbox sema b) sb)
-  (call-with-semaphore sema
-    (λ ()
-      (begin0 (unbox b)
-        (set-box! b new)))))
-(define (sbox-poke sb f)
-  (match-define (*sbox sema b) sb)
-  (call-with-semaphore sema
-    (λ () (f (unbox b)))))
-
-(struct gui (depth-box events-sbox fps drawer frame refresh!)
+(struct gui (depth-box event-ch fps drawer frame refresh!)
         #:methods gen:chaos
         [(define (chaos-fps c)
            (gui-fps c))
          (define (chaos-yield c e)
-           (yield e))
-         (define (chaos-inputs c)
-           (define eb (gui-events-sbox c))
-           (define new-q (make-queue))
-           (define q (sbox-swap! eb new-q))
-           (in-queue q))
+           (yield e))         
+         (define (chaos-event c)
+           (gui-event-ch c))
          (define (chaos-output! c o)
            (set-box! (gui-drawer c) o)
            ((gui-refresh! c)))
@@ -49,17 +32,17 @@
                   #:mode [mode 'draw]
                   #:width [init-w 800]
                   #:height [init-h 600])
-  (define events-box (sbox (make-queue)))
+  (define events-ch (make-async-channel))
   (define gframe%
     (class frame%
       (define/override (on-size w h)
         (refresh!))
       (define/augment (on-close)
-        (sbox-poke events-box (λ (q) (enqueue! q 'close))))
+        (async-channel-put events-ch 'close))
       (define/override (on-subwindow-char w ke)
-        (sbox-poke events-box (λ (q) (enqueue! q ke))))
+        (async-channel-put events-ch ke))
       (define/override (on-subwindow-event w me)
-        (sbox-poke events-box (λ (q) (enqueue! q me))))
+        (async-channel-put events-ch me))
       (super-new)))
 
   (define drawer (box void))
@@ -101,7 +84,7 @@
 
   (define depth-box (box 0))
 
-  (gui depth-box events-box fps drawer f refresh!))
+  (gui depth-box events-ch fps drawer f refresh!))
 
 (provide
  (contract-out

@@ -17,32 +17,35 @@
   #:methods gen:word
   [(define (word-label s ft)
      (lux-standard-label "Values" ft))
-   (define (word-tick w es)
+   (define (word-output w)
+     (match-define (demo mode-n) w)
+     (match (list-ref MODES mode-n)
+       ['pict
+        (pict:arrowhead 30 0)]
+       ['image
+        (image:add-line
+         (image:rectangle 100 100 "solid" "darkolivegreen")
+         25 25 75 75
+         (image:make-pen "goldenrod" 30 "solid" "round" "round"))]))
+   (define (word-event w e)
+     ;; xxx remove mutation
      (match-define (demo mode-n) w)
      (define closed? #f)
-     (for ([e es])
-       (match e
-         ['close
-          (set! closed? #t)]
-         [(? (λ (x) (is-a? x key-event%)) ke)
-          (unless (eq? 'release (send ke get-key-code))
-            (set! mode-n (fxmodulo (fx+ 1 mode-n) (length MODES))))]
-         [_
-          (void)]))
+     (match e
+       ['close
+        (set! closed? #t)]
+       [(? (λ (x) (is-a? x key-event%)) ke)
+        (unless (eq? 'release (send ke get-key-code))
+          (set! mode-n (fxmodulo (fx+ 1 mode-n) (length MODES))))]
+       [_
+        (void)])
      (match closed?
        [#t
-        (values #f w)]
+        #f]
        [#f
-        (values
-         (demo mode-n)
-         (match (list-ref MODES mode-n)
-           ['pict
-            (pict:arrowhead 30 0)]
-           ['image
-            (image:add-line
-             (image:rectangle 100 100 "solid" "darkolivegreen")
-             25 25 75 75
-             (image:make-pen "goldenrod" 30 "solid" "round" "round"))]))]))])
+        (demo mode-n)]))
+   (define (word-tick w)
+     w)])
 
 (module+ main
   (call-with-chaos

@@ -10,7 +10,7 @@
         #:methods gen:chaos
         [(define/generic super-fps chaos-fps)
          (define/generic super-yield chaos-yield)
-         (define/generic super-inputs chaos-inputs)
+         (define/generic super-event chaos-event)
          (define/generic super-output! chaos-output!)
          (define/generic super-label! chaos-label!)
          (define/generic super-swap! chaos-swap!)
@@ -18,8 +18,9 @@
            (super-fps (gui/val-g c)))
          (define (chaos-yield c e)
            (super-yield (gui/val-g c) e))
-         (define (chaos-inputs c)
-           (super-inputs (gui/val-g c)))
+         (define (chaos-event c)
+           (super-event (gui/val-g c)))
+         ;; xxx change this to be a helper for word's output creation
          (define (chaos-output! c o)
            (unless (eq? o (gui/val-last c))
              (set-gui/val-last! c o)
