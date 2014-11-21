@@ -6,7 +6,6 @@
          pict
          pict/convert)
 
-;; xxx maybe draw to a bitmap and blit
 (define (make-gui/val #:scale? [scale? #t])
   (λ (o)
     (define p (pict-convert o))
