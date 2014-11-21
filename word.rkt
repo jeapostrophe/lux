@@ -50,7 +50,7 @@
   (factum-fiat-lux c w))
 
 (define (factum-fiat-lux c w)
-  (define (update-word w make-next-tick-evt f)
+  (define (update-word w f make-next-time)
     (define start-time (current-inexact-milliseconds))
     (define new-w (f w))
     (match new-w
@@ -63,9 +63,13 @@
        (define new-label
          (word-label new-w frame-time))
        (chaos-label! c new-label)
-       (define next-tick-evt (make-next-tick-evt new-w start-time))
-       (body next-tick-evt new-w)]))
-  (define (body tick-evt w)
+       (define next-time (make-next-time new-w start-time))
+       (body next-time new-w)]))
+  (define (compute-next-time start-time fps)
+    (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
+    (define next-time (fl+ start-time time-incr))
+    next-time)
+  (define (body next-time w)
     (chaos-yield
      c
      (choice-evt
@@ -73,22 +77,23 @@
        (chaos-event c)
        (λ (e)
          (update-word w
-                      (λ (w start-time)
-                        tick-evt)
                       (λ (w)
-                        (word-event w e)))))
+                        (word-event w e))
+                      (λ (new-w start-time)
+                        (define old-fps (word-fps w))
+                        (define fps (word-fps new-w))
+                        (if (= old-fps fps)
+                            next-time
+                            (compute-next-time start-time fps))))))
       (handle-evt
-       tick-evt
+       (alarm-evt next-time)
        (λ (_)
          (update-word w
-                      (λ (w start-time)
-                        (define fps (word-fps w))
-                        (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
-                        (define next-time (fl+ start-time time-incr))
-                        (define next-tick-evt (alarm-evt next-time))
-                        next-tick-evt)
-                      word-tick))))))
-  (chaos-swap! c (λ () (body always-evt w))))
+                      word-tick
+                      (λ (new-w start-time)
+                        (define fps (word-fps new-w))
+                        (compute-next-time start-time fps))))))))
+  (chaos-swap! c (λ () (body 0 w))))
 
 (provide
  gen:word
