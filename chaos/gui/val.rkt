@@ -1,32 +1,30 @@
 #lang racket/base
 (require racket/class
          racket/draw
+         racket/fixnum
          racket/contract/base
          pict
          pict/convert)
 
+;; xxx maybe draw to a bitmap and blit
 (define (make-gui/val #:scale? [scale? #t])
-  (define last-val #f)
-  (define (output-val o)
-    (unless (eq? o last-val)
-      (set! last-val o)
-      (define p (pict-convert o))
-      (λ (w h dc)
-        (parameterize ([dc-for-text-size dc])
-          (send dc set-background "black")
-          (send dc clear)
-          (define sp
-            (if scale?
-                (scale-to-fit p w h)
-                p))
-          (define spw (pict-width sp))
-          (define left (/ (- w spw) 2))
-          (define sph (pict-height sp))
-          (define top (/ (- h sph) 2))
-          (send dc set-brush "white" 'solid)
-          (send dc draw-rectangle left top spw sph)
-          (draw-pict sp dc left top)))))
-  output-val)
+  (λ (o)
+    (define p (pict-convert o))
+    (λ (w h dc)
+      (parameterize ([dc-for-text-size dc])
+        (send dc set-background "black")
+        (send dc clear)
+        (define sp
+          (if scale?
+              (scale-to-fit p w h)
+              p))
+        (define spw (pict-width sp))
+        (define left (/ (- w spw) 2))
+        (define sph (pict-height sp))
+        (define top (/ (- h sph) 2))
+        (send dc set-brush "white" 'solid)
+        (send dc draw-rectangle left top spw sph)
+        (draw-pict sp dc left top)))))
 
 (provide
  (contract-out

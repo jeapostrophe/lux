@@ -11,7 +11,11 @@
          lux/chaos/gui/key)
 
 (define MODES
-  '(pict image))
+  (list (pict:arrowhead 30 0)
+        (image:add-line
+         (image:rectangle 100 100 "solid" "darkolivegreen")
+         25 25 75 75
+         (image:make-pen "goldenrod" 30 "solid" "round" "round"))))
 
 (struct demo
   (g/v mode)
@@ -20,15 +24,7 @@
      (lux-standard-label "Values" ft))
    (define (word-output w)
      (match-define (demo g/v mode-n) w)
-     (g/v
-      (match (list-ref MODES mode-n)
-        ['pict
-         (pict:arrowhead 30 0)]
-        ['image
-         (image:add-line
-          (image:rectangle 100 100 "solid" "darkolivegreen")
-          25 25 75 75
-          (image:make-pen "goldenrod" 30 "solid" "round" "round"))])))
+     (g/v (list-ref MODES mode-n)))
    (define (word-event w e)
      (match-define (demo g/v mode-n) w)
      (define closed? #f)
@@ -45,5 +41,5 @@
 
 (module+ main
   (call-with-chaos
-    (make-gui 60.0)
+   (make-gui 60.0)
    (λ () (fiat-lux (demo (make-gui/val) 0)))))
