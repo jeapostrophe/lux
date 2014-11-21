@@ -3,16 +3,13 @@
          racket/generic)
 
 (define-generics chaos
-  (chaos-fps chaos)
   (chaos-yield chaos evt)
   (chaos-event chaos)
   (chaos-output! chaos outputs)
   (chaos-label! chaos label)
   (chaos-swap! chaos thunk)
   #:fallbacks
-  [(define (chaos-fps c)
-     60.0)
-   (define (chaos-yield c e)
+  [(define (chaos-yield c e)
      (sync e))
    (define (chaos-event c)
      never-evt)
@@ -27,7 +24,6 @@
  gen:chaos
  (contract-out
   [chaos? (-> any/c boolean?)]
-  [chaos-fps (-> chaos? flonum?)]
   [chaos-yield (-> chaos? evt? any)]
   [chaos-event (-> chaos? evt?)]
   [chaos-output! (-> chaos? any/c any)]

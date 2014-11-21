@@ -13,7 +13,9 @@
 
 (struct spin (layer color frame x y)
         #:methods gen:word
-        [(define (word-label s ft)
+        [(define (word-fps w)
+           60.0)
+         (define (word-label s ft)
            (lux-standard-label "Spin!" ft))
          (define (word-event w e)
            (match-define (spin layer color f x y) w)
@@ -54,6 +56,6 @@
 
 (module+ main
   (call-with-chaos
-   (make-gui 60.0)
+   (make-gui)
    (λ ()
      (spin-it 0))))

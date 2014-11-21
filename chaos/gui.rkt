@@ -6,11 +6,9 @@
          racket/async-channel
          lux/chaos)
 
-(struct gui (depth-box event-ch fps drawer frame refresh!)
+(struct gui (depth-box event-ch drawer frame refresh!)
         #:methods gen:chaos
-        [(define (chaos-fps c)
-           (gui-fps c))
-         (define (chaos-yield c e)
+        [(define (chaos-yield c e)
            (yield e))         
          (define (chaos-event c)
            (gui-event-ch c))
@@ -28,8 +26,7 @@
                  (send (gui-frame c) show #f)
                  (set-box! db og))))])
 
-(define (make-gui fps
-                  #:mode [mode 'draw]
+(define (make-gui #:mode [mode 'draw]
                   #:width [init-w 800]
                   #:height [init-h 600])
   (define events-ch (make-async-channel))
@@ -84,12 +81,12 @@
 
   (define depth-box (box 0))
 
-  (gui depth-box events-ch fps drawer f refresh!))
+  (gui depth-box events-ch drawer f refresh!))
 
 (provide
  (contract-out
   [make-gui
-   (->* (flonum?)
+   (->* ()
         (#:mode
          (or/c (one-of/c 'draw 'compat-gl 'core-gl)
                (is-a?/c gl-config%))

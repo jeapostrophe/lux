@@ -8,13 +8,16 @@
          lux/chaos)
 
 (define-generics word
+  (word-fps word)
   (word-label word frame-time)
   (word-event word evt)
   (word-tick word)
   (word-output word)
   (word-return word)
   #:fallbacks
-  [(define (word-label w frame-time)
+  [(define (word-fps w)
+     60.0)
+   (define (word-label w frame-time)
      (lux-standard-label "Lux" frame-time))
    (define (word-event w e) w)
    (define (word-tick w) w)
@@ -47,8 +50,6 @@
   (factum-fiat-lux c w))
 
 (define (factum-fiat-lux c w)
-  (define fps (chaos-fps c))
-  (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
   (define (update-word w make-next-tick-evt f)
     (define start-time (current-inexact-milliseconds))
     (define new-w (f w))
@@ -56,13 +57,13 @@
       [#f
        (word-return w)]
       [_
-       (chaos-output! c (word-output w))
+       (chaos-output! c (word-output new-w))
        (define end-time (current-inexact-milliseconds))
        (define frame-time (fl- end-time start-time))
        (define new-label
          (word-label new-w frame-time))
        (chaos-label! c new-label)
-       (define next-tick-evt (make-next-tick-evt start-time))
+       (define next-tick-evt (make-next-tick-evt new-w start-time))
        (body next-tick-evt new-w)]))
   (define (body tick-evt w)
     (chaos-yield
@@ -72,7 +73,7 @@
        (chaos-event c)
        (λ (e)
          (update-word w
-                      (λ (start-time)
+                      (λ (w start-time)
                         tick-evt)
                       (λ (w)
                         (word-event w e)))))
@@ -80,7 +81,9 @@
        tick-evt
        (λ (_)
          (update-word w
-                      (λ (start-time)
+                      (λ (w start-time)
+                        (define fps (word-fps w))
+                        (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
                         (define next-time (fl+ start-time time-incr))
                         (define next-tick-evt (alarm-evt next-time))
                         next-tick-evt)

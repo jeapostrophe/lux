@@ -20,7 +20,9 @@
 (struct demo
   (g/v mode)
   #:methods gen:word
-  [(define (word-label s ft)
+  [(define (word-fps w)
+     60.0)
+   (define (word-label s ft)
      (lux-standard-label "Values" ft))
    (define (word-output w)
      (match-define (demo g/v mode-n) w)
@@ -41,5 +43,5 @@
 
 (module+ main
   (call-with-chaos
-   (make-gui 60.0)
+   (make-gui)
    (λ () (fiat-lux (demo (make-gui/val) 0)))))
