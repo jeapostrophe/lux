@@ -9,7 +9,7 @@
 (struct gui (depth-box event-ch drawer frame refresh!)
         #:methods gen:chaos
         [(define (chaos-yield c e)
-           (yield e))         
+           (yield e))
          (define (chaos-event c)
            (gui-event-ch c))
          (define (chaos-output! c o)
@@ -27,6 +27,7 @@
                  (set-box! db og))))])
 
 (define (make-gui #:mode [mode 'draw]
+                  #:icon [icon #f]
                   #:width [init-w 800]
                   #:height [init-h 600])
   (define events-ch (make-async-channel))
@@ -79,6 +80,15 @@
   (send f center)
   (send f show #t)
 
+  (when icon
+    (define icon-bm
+      (if (is-a? icon bitmap%)
+          icon
+          (read-bitmap icon)))
+    (when (eq? 'macosx (system-type 'os))
+      (local-require drracket/private/dock-icon)
+      (set-dock-tile-bitmap icon-bm)))
+
   (define depth-box (box 0))
 
   (gui depth-box events-ch drawer f refresh!))
@@ -90,6 +100,8 @@
         (#:mode
          (or/c (one-of/c 'draw 'compat-gl 'core-gl)
                (is-a?/c gl-config%))
+         #:icon
+         (or/c path-string? (is-a?/c bitmap%))
          #:width
          exact-nonnegative-integer?
          #:height
