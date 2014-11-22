@@ -5,7 +5,7 @@
 (define-generics chaos
   (chaos-yield chaos evt)
   (chaos-event chaos)
-  (chaos-output! chaos outputs)
+  (chaos-output! chaos output)
   (chaos-label! chaos label)
   (chaos-swap! chaos thunk)
   #:fallbacks
@@ -13,7 +13,7 @@
      (sync e))
    (define (chaos-event c)
      never-evt)
-   (define (chaos-output! c os)
+   (define (chaos-output! c o)
      (void))
    (define (chaos-label! c l)
      (void))

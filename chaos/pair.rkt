@@ -8,7 +8,7 @@
 (struct pair (l r)
         #:methods gen:chaos
         [(define/generic super-yield chaos-yield)
-         (define/generic super-inputs chaos-inputs)
+         (define/generic super-event chaos-event)
          (define/generic super-output! chaos-output!)
          (define/generic super-label! chaos-label!)
          (define/generic super-swap! chaos-swap!)
@@ -18,10 +18,10 @@
                         (handle-evt always-evt
                                     (λ (_)
                                       (super-yield r e)))))
-         (define (chaos-inputs c)
+         (define (chaos-event c)
            (match-define (pair l r) c)
-           (sequence-append (super-inputs l)
-                            (super-inputs r)))
+           (choice-evt (super-event l)
+                       (super-event r)))
          (define (chaos-output! c o)
            (match-define (pair l r) c)
            (match-define (cons l.o r.o) o)

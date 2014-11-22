@@ -63,7 +63,7 @@
   [make-key-state
    (-> key-state?)]
   [key-state-update!
-   (-> key-state? (is-a?/c key-event%)
+   (-> key-state? key-event?
        any)]
   [key-state-set?
    (-> key-state? (or/c char? key-code-symbol?)

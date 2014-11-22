@@ -21,7 +21,7 @@
      (lux-standard-label "Lux" frame-time))
    (define (word-event w e) w)
    (define (word-tick w) w)
-   (define (word-output w) empty)
+   (define (word-output w) #f)
    (define (word-return w) w)])
 
 (define (lux-standard-label l frame-time)
@@ -98,6 +98,8 @@
 (provide
  gen:word
  (contract-out
+  [word?
+   (-> any/c word?)]
   [lux-standard-label
    (-> string? flonum?
        string?)]

@@ -13,7 +13,8 @@
          (define (chaos-event c)
            (gui-event-ch c))
          (define (chaos-output! c o)
-           (set-box! (gui-drawer c) o)
+           (when o
+             (set-box! (gui-drawer c) o))
            ((gui-refresh! c)))
          (define (chaos-label! c l)
            (send (gui-frame c) set-label l))
@@ -60,9 +61,9 @@
   (define gl-config
     (match mode
       ['draw #f]
-      ['compat-gl
+      ['gl-compat
        (new gl-config%)]
-      ['core-gl
+      ['gl-core
        (define gl-config (new gl-config%))
        (send gl-config set-legacy? #f)]
       [gl-config
@@ -98,10 +99,10 @@
   [make-gui
    (->* ()
         (#:mode
-         (or/c (one-of/c 'draw 'compat-gl 'core-gl)
+         (or/c (one-of/c 'draw 'gl-compat 'gl-core)
                (is-a?/c gl-config%))
          #:icon
-         (or/c path-string? (is-a?/c bitmap%))
+         (or/c #f path-string? (is-a?/c bitmap%))
          #:width
          exact-nonnegative-integer?
          #:height
