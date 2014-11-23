@@ -87,8 +87,8 @@
           icon
           (read-bitmap icon)))
     (when (eq? 'macosx (system-type 'os))
-      (local-require drracket/private/dock-icon)
-      (set-dock-tile-bitmap icon-bm)))
+      ((dynamic-require 'drracket/private/dock-icon 'set-dock-tile-bitmap)
+       icon-bm)))
 
   (define depth-box (box 0))
 
