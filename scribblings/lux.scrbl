@@ -5,6 +5,8 @@
                     lux/chaos/gui/val
                     lux/chaos/gui/key
                     lux/chaos/gui/mouse
+                    racket/contract
+                    pict/convert
                     racket/gui/base
                     racket/base]]
 
