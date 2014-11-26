@@ -124,6 +124,8 @@ This module provides the standard @tech{chaos} that most users of
 @defproc[(make-gui [#:mode mode (or/c (one-of/c 'draw 'gl-compat 'gl-core)
                                       (is-a?/c gl-config%))
                            'draw]
+                   [#:start-fullscreen? start-fullscreen? boolean?
+                                        #f]
                    [#:icon icon
                            (or/c #f path-string? (is-a?/c bitmap%))
                            #f]
@@ -138,7 +140,8 @@ This module provides the standard @tech{chaos} that most users of
 Returns a @tech{chaos} that opens a GUI frame with a canvas to draw
 on. The default size of the frame is
 @racket[width]x@racket[height]. The icon for the application is set to
-@racket[icon]. 
+@racket[icon]. If @racket[start-fullscreen?] is true, then the frame
+is initially fullscreen.
 
 The canvas is set up for drawing based on @racket[mode]. If
 @racket[mode] is @racket['draw], then the canvas assumes that
@@ -280,6 +283,11 @@ The generic interface binding for @tech{chaos}es.}
 
 The @tech{chaos} methods are as follows:
 
+@defproc[(chaos-start! [c chaos?]) any]{
+
+Called at the start of using @racket[c] as the current
+@tech{chaos}. By default, does nothing.}
+
 @defproc[(chaos-yield [c chaos?] [e evt?]) any]{
 
 Synchronizes on @racket[e] in a way safe for @racket[c]. By default,
@@ -304,3 +312,8 @@ nothing.}
 
 Calls @racket[t] while preparing @racket[c] to run a different
 @tech{word}. By default, just calls @racket[t].}
+
+@defproc[(chaos-stop! [c chaos?]) any]{
+
+Called at the end of using @racket[c] as the current @tech{chaos}. By
+default, does nothing.}

@@ -7,11 +7,17 @@
 
 (struct pair (l r)
         #:methods gen:chaos
-        [(define/generic super-yield chaos-yield)
+        [(define/generic super-start! chaos-start!)
+         (define/generic super-yield chaos-yield)
          (define/generic super-event chaos-event)
          (define/generic super-output! chaos-output!)
          (define/generic super-label! chaos-label!)
          (define/generic super-swap! chaos-swap!)
+         (define/generic super-stop! chaos-stop!)
+         (define (chaos-start! c)
+           (match-define (pair l r) c)
+           (super-start! l)
+           (super-start! r))
          (define (chaos-yield c e)
            (match-define (pair l r) c)
            (super-yield l
@@ -33,7 +39,11 @@
            (super-label! r lab))
          (define (chaos-swap! c t)
            (match-define (pair l r) c)
-           (super-swap! l (λ () (super-swap! r t))))])
+           (super-swap! l (λ () (super-swap! r t))))
+         (define (chaos-stop! c)
+           (match-define (pair l r) c)
+           (super-stop! l)
+           (super-stop! r))])
 
 (define (make-pair l r)
   (pair l r))

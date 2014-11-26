@@ -40,8 +40,10 @@
 (define current-chaos (make-parameter #f))
 
 (define (call-with-chaos c t)
+  (chaos-start! c)
   (parameterize ([current-chaos c])
-    (t)))
+    (begin0 (t)
+      (chaos-stop! c))))
 
 (define (fiat-lux w)
   (define c (current-chaos))

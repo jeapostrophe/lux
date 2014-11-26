@@ -6,7 +6,7 @@
          racket/async-channel
          lux/chaos)
 
-(struct gui (depth-box event-ch drawer frame refresh!)
+(struct gui (event-ch drawer frame refresh!)
         #:methods gen:chaos
         [(define (chaos-yield c e)
            (yield e))
@@ -18,16 +18,11 @@
            ((gui-refresh! c)))
          (define (chaos-label! c l)
            (send (gui-frame c) set-label l))
-         (define (chaos-swap! c t)
-           (define db (gui-depth-box c))
-           (define og (unbox db))
-           (set-box! db (add1 og))
-           (begin0 (t)
-             (if (zero? og)
-                 (send (gui-frame c) show #f)
-                 (set-box! db og))))])
+         (define (chaos-stop! c)
+           (send (gui-frame c) show #f))])
 
 (define (make-gui #:mode [mode 'draw]
+                  #:start-fullscreen? [start-fullscreen? #f]
                   #:icon [icon #f]
                   #:width [init-w 800]
                   #:height [init-h 600])
@@ -65,13 +60,15 @@
        (new gl-config%)]
       ['gl-core
        (define gl-config (new gl-config%))
-       (send gl-config set-legacy? #f)]
+       (send gl-config set-legacy? #f)
+       gl-config]
       [gl-config
        gl-config]))
 
   (define c
     (new canvas% [parent f]
          [paint-callback paint-canvas]
+         [gl-config gl-config]
          [style
           (cons 'no-autoclear
                 (if gl-config '(gl) '()))]))
@@ -80,6 +77,8 @@
 
   (send f center)
   (send f show #t)
+  (when start-fullscreen?
+    (send f fullscreen #t))
 
   (when icon
     (define icon-bm
@@ -90,9 +89,7 @@
       ((dynamic-require 'drracket/private/dock-icon 'set-dock-tile-bitmap)
        icon-bm)))
 
-  (define depth-box (box 0))
-
-  (gui depth-box events-ch drawer f refresh!))
+  (gui events-ch drawer f refresh!))
 
 (provide
  (contract-out
@@ -101,6 +98,8 @@
         (#:mode
          (or/c (one-of/c 'draw 'gl-compat 'gl-core)
                (is-a?/c gl-config%))
+         #:start-fullscreen?
+         boolean?
          #:icon
          (or/c #f path-string? (is-a?/c bitmap%))
          #:width
