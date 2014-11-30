@@ -73,7 +73,7 @@
           (cons 'no-autoclear
                 (if gl-config '(gl) '()))]))
   (define (refresh!)
-    (send c refresh))
+    (send c refresh-now))
 
   (send f center)
   (send f show #t)
