@@ -203,6 +203,10 @@ Produces a @racket[key-state?] object with appropriate defaults.}
 
 Identifies key events.}
 
+@defproc[(key-event-code [ke key-event?]) (or/c (cons/c 'release (or/c char? key-code-symbol?)) (or/c char? key-code-symbol?))]{
+
+Returns the code of the key event.}
+
 @defproc[(key-state-update! [ks key-state?] [ke key-event?]) any]{
 
 Updates @racket[ks] with @racket[ke].}
@@ -226,8 +230,8 @@ with each event as in @racket[word-event]. Such as system may be
 appropriate for interactive programs where input is only has an impact
 at a consistent tick rate.
 
-@defstruct*[mouse-state ([x exact-integer?]
-                         [y exact-integer?]
+@defstruct*[mouse-state ([x real?]
+                         [y real?]
                          [left? boolean?]
                          [right? boolean?]
                          [middle? boolean?]
@@ -248,6 +252,10 @@ Produces a @racket[mouse-state?] object with appropriate defaults.}
 @defproc[(mouse-event? [x any/c])  boolean?]{
 
 Identifies mouse events.}
+
+@defproc[(mouse-event-xy [me mouse-event?]) (values real? real?)]{
+
+Returns the position of the mouse event.}
 
 @defproc[(mouse-state-update! [ms mouse-state?] [me mouse-event?]) any]{
 

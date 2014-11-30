@@ -26,12 +26,18 @@
 
 (define (key-event? x)
   (is-a? x key-event%))
+(define (key-event-code ke)
+  (match (send ke get-key-code)
+    ['release
+     (cons 'release (send ke get-key-release-code))]
+    [kc
+     kc]))
 
 (define (key-state-update! ks ke)
   (define ht (key-state-keys ks))
-  (match (send ke get-key-code)
-    ['release
-     (hash-set! ht (send ke get-key-release-code) #f)]
+  (match (key-event-code ke)
+    [(cons 'release kc)
+     (hash-set! ht kc #f)]
     [kc
      (hash-set! ht kc #t)])
   (set-key-states
@@ -60,6 +66,10 @@
      [mod5? boolean?])]
   [key-event?
    (-> any/c boolean?)]
+  [key-event-code
+   (-> key-event?
+       (or/c (cons/c 'release (or/c char? key-code-symbol?))
+             (or/c char? key-code-symbol?)))]
   [make-key-state
    (-> key-state?)]
   [key-state-update!

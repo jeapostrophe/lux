@@ -26,6 +26,8 @@
 
 (define (mouse-event? x)
   (is-a? x mouse-event%))
+(define (mouse-event-xy me)
+  (values (send me get-x) (send me get-y)))
 
 (define (mouse-state-update! ms me)
   (set-mouse-state-x! ms (send me get-x))
@@ -39,8 +41,8 @@
 (provide
  (contract-out
   [struct mouse-state
-    ([x exact-integer?]
-     [y exact-integer?]
+    ([x real?]
+     [y real?]
      [left? boolean?]
      [right? boolean?]
      [middle? boolean?]
@@ -53,6 +55,8 @@
      [mod5? boolean?])]
   [mouse-event?
    (-> any/c boolean?)]
+  [mouse-event-xy
+   (-> mouse-event? (values real? real?))]
   [make-mouse-state
    (-> mouse-state?)]
   [mouse-state-update!
