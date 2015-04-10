@@ -6,6 +6,10 @@
          racket/async-channel
          lux/chaos)
 
+;; Robby says that I could rework this to remove the event-ch by
+;; having capturing the continuation, storing it, and then calling it
+;; from within the callback once an event is ready.
+
 (struct gui (event-ch drawer frame refresh!)
         #:methods gen:chaos
         [(define (chaos-yield c e)
@@ -72,8 +76,14 @@
          [style
           (cons 'no-autoclear
                 (if gl-config '(gl) '()))]))
+  (define the-refresh-sema (make-semaphore 0))
   (define (refresh!)
-    (send c refresh-now))
+    (queue-callback 
+     (λ () 
+       (send c refresh-now)
+       (semaphore-post the-refresh-sema))
+     #f)
+    (yield the-refresh-sema))
 
   (send f center)
   (send f show #t)
