@@ -72,9 +72,7 @@
     (define next-time (fl+ start-time time-incr))
     next-time)
   (define (body next-time w)
-    (chaos-yield
-     c
-     (choice-evt
+    (define input-evt
       (handle-evt
        (chaos-event c)
        (λ (e)
@@ -86,7 +84,8 @@
                         (define fps (word-fps new-w))
                         (if (= old-fps fps)
                             next-time
-                            (compute-next-time start-time fps))))))
+                            (compute-next-time start-time fps)))))))
+    (define refresh-evt
       (handle-evt
        (alarm-evt next-time)
        (λ (_)
@@ -94,7 +93,13 @@
                       word-tick
                       (λ (new-w start-time)
                         (define fps (word-fps new-w))
-                        (compute-next-time start-time fps))))))))
+                        (compute-next-time start-time fps))))))
+    (sync/timeout
+     (λ ()
+       (chaos-yield
+        c
+        (choice-evt input-evt refresh-evt)))
+     input-evt))
   (chaos-swap! c (λ () (body 0 w))))
 
 (provide
