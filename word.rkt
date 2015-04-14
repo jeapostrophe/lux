@@ -10,6 +10,7 @@
 (define-generics word
   (word-fps word)
   (word-label word frame-time)
+  (word-evt word)
   (word-event word evt)
   (word-tick word)
   (word-output word)
@@ -19,6 +20,8 @@
      60.0)
    (define (word-label w frame-time)
      (lux-standard-label "Lux" frame-time))
+   (define (word-evt w)
+     never-evt)
    (define (word-event w e) w)
    (define (word-tick w) w)
    (define (word-output w) #f)
@@ -74,7 +77,8 @@
   (define (body next-time w)
     (define input-evt
       (handle-evt
-       (chaos-event c)
+       (choice-evt (word-evt w)
+                   (chaos-event c))
        (λ (e)
          (update-word w
                       (λ (w)

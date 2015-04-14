@@ -72,6 +72,11 @@ Returns a label for @racket[w] that could use @racket[frame-time] to
 show the performance of the @tech{word} rendering. By default, returns
 @racket[(lux-standard-label "Lux" frame-time)].}
 
+@defproc[(word-evt [w word?]) evt?]{
+
+Returns a synchronizable event that the @tech{word} @racket[w]
+requires notification of. By default, returns @racket[never-evt].}
+
 @defproc[(word-event [w word?] [e any/c]) word?]{
 
 Returns a @tech{word} based on @racket[w] that integrates the
