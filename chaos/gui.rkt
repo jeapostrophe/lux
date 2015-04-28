@@ -28,8 +28,19 @@
 (define (make-gui #:mode [mode 'draw]
                   #:start-fullscreen? [start-fullscreen? #f]
                   #:icon [icon #f]
-                  #:width [init-w 800]
-                  #:height [init-h 600])
+                  #:width [the-init-w #f]
+                  #:height [the-init-h #f])
+  (define-values (start-x start-y init-w init-h)
+    (cond
+      [start-fullscreen?
+       (define-values (x y) (get-display-left-top-inset #t))
+       (define-values (w h) (get-display-size #t))
+       (values (* -1 x) (* -1 y) w h)]
+      [else
+       (values #f #f the-init-w the-init-h)]))
+
+  ;; xxx start-x/y isn't working
+  
   (define events-ch (make-async-channel))
   (define gframe%
     (class frame%
@@ -50,12 +61,19 @@
      (send c get-height)
      dc))
 
+  (printf "starting at ~v\n" (vector start-x start-y))
+
   (define f
     (new gframe%
          [label ""]
+         [x start-x]
+         [y start-y]
          [width init-w]
          [height init-h]
-         [style '(fullscreen-button)]))
+         [style
+          (if start-fullscreen?
+              '(hide-menu-bar no-resize-border)
+              '())]))
 
   (define gl-config
     (match mode
@@ -79,16 +97,18 @@
   (define the-refresh-sema (make-semaphore 0))
   (define (refresh!)
     (queue-callback 
-     (λ () 
+     (λ ()
        (send c refresh-now)
        (semaphore-post the-refresh-sema))
      #f)
     (yield the-refresh-sema))
 
-  (send f center)
+  (cond
+    [start-fullscreen?
+     (send f move start-x start-y)]
+    [else
+     (send f center)])
   (send f show #t)
-  (when start-fullscreen?
-    (send f fullscreen #t))
 
   (when icon
     (define icon-bm
