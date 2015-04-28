@@ -37,7 +37,7 @@
        (define-values (w h) (get-display-size #t))
        (values (* -1 x) (* -1 y) w h)]
       [else
-       (values #f #f the-init-w the-init-h)]))
+       (values #f #f 800 600)]))
 
   ;; xxx start-x/y isn't working
   
