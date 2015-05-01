@@ -45,6 +45,7 @@
   (define gframe%
     (class frame%
       (define/override (on-size w h)
+        (async-channel-put events-ch (list 'resize w h))
         (refresh!))
       (define/augment (on-close)
         (async-channel-put events-ch 'close))
@@ -61,7 +62,7 @@
      (send c get-height)
      dc))
 
-  (printf "starting at ~v\n" (vector start-x start-y))
+  ;; (printf "starting at ~v\n" (vector start-x start-y))
 
   (define f
     (new gframe%
