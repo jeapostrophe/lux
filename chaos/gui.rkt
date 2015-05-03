@@ -26,8 +26,10 @@
            (send (gui-frame c) show #f))])
 
 (define (make-gui #:mode [mode 'draw]
+                  #:opengl-hires? [opengl-hires? #f]
                   #:start-fullscreen? [start-fullscreen? #f]
                   #:icon [icon #f]
+                  #:frame-style [frame-style '()]
                   #:width [the-init-w #f]
                   #:height [the-init-h #f])
   (define-values (start-x start-y init-w init-h)
@@ -71,10 +73,7 @@
          [y start-y]
          [width init-w]
          [height init-h]
-         [style
-          (if start-fullscreen?
-              '(hide-menu-bar no-resize-border)
-              '())]))
+         [style frame-style]))
 
   (define gl-config
     (match mode
@@ -87,6 +86,9 @@
        gl-config]
       [gl-config
        gl-config]))
+
+  (when (and gl-config opengl-hires?)
+    (send gl-config set-hires-mode #t))
 
   (define c
     (new canvas% [parent f]
@@ -129,8 +131,12 @@
         (#:mode
          (or/c (one-of/c 'draw 'gl-compat 'gl-core)
                (is-a?/c gl-config%))
+         #:opengl-hires?
+         boolean?
          #:start-fullscreen?
          boolean?
+         #:frame-style
+         (listof symbol?)
          #:icon
          (or/c #f path-string? (is-a?/c bitmap%))
          #:width

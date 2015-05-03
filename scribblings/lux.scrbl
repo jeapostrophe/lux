@@ -128,9 +128,11 @@ This module provides the standard @tech{chaos} that most users of
 
 @defproc[(make-gui [#:mode mode (or/c (one-of/c 'draw 'gl-compat 'gl-core)
                                       (is-a?/c gl-config%))
-                           'draw]
+                    'draw]
+                   [#:opengl-hires? opengl-hires? boolean? #f]
                    [#:start-fullscreen? start-fullscreen? boolean?
-                                        #f]
+                    #f]
+                   [#:frame-style frame-style (listof symbol?) '()]
                    [#:icon icon
                            (or/c #f path-string? (is-a?/c bitmap%))
                            #f]
@@ -146,7 +148,8 @@ Returns a @tech{chaos} that opens a GUI frame with a canvas to draw
 on. The default size of the frame is
 @racket[width]x@racket[height]. The icon for the application is set to
 @racket[icon]. If @racket[start-fullscreen?] is true, then the frame
-is initially fullscreen.
+is initially fullscreen. The frame's style is set to
+@racket[frame-style].
 
 The canvas is set up for drawing based on @racket[mode]. If
 @racket[mode] is @racket['draw], then the canvas assumes that
@@ -155,7 +158,9 @@ the canvas is drawn with OpenGL. If @racket[mode] is
 @racket['gl-compat], then a compatibility OpenGL profile is used. If
 @racket[mode] is @racket['gl-core], then a core OpenGL profile is
 used. If @racket[mode] is a @racket[gl-config%] object, then it is
-used to initialize the canvas.
+used to initialize the canvas. If @racket[opengl-hires?] is
+@racket[#t], then the resulting @racket[gl-config%] object will have
+high resolution mode set.
 
 The values that @racket[word-event] is called with are either
 @racket['close] (for when the window's close button is pressed), a
