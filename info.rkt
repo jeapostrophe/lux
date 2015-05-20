@@ -2,7 +2,7 @@
 (define collection "lux")
 (define deps '("draw-lib"
                "drracket"
-               "gui-lib"
+               ["gui-lib" #:version "1.13"]
                "htdp-lib"
                "pict-lib"
                "base"

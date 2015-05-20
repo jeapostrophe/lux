@@ -47,10 +47,8 @@
   (define gframe%
     (class frame%
       (define/override (on-size w h)
-        (async-channel-put events-ch
-                           (list 'resize
-                                 (send c get-width)
-                                 (send c get-height)))
+        (define-values (cw ch) (send c get-scaled-client-size))
+        (async-channel-put events-ch (list 'resize cw ch))
         (refresh!))
       (define/augment (on-close)
         (async-channel-put events-ch 'close))
