@@ -60,10 +60,8 @@
 
   (define drawer (box void))
   (define (paint-canvas c dc)
-    ((unbox drawer)
-     (send c get-width)
-     (send c get-height)
-     dc))
+    (define-values (cw ch) (send c get-scaled-client-size))
+    ((unbox drawer) cw ch dc))
 
   ;; (printf "starting at ~v\n" (vector start-x start-y))
 
