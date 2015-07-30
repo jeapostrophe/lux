@@ -54,6 +54,14 @@
     (error 'fiat-lux "Not called within call-with-chaos"))
   (factum-fiat-lux c w))
 
+;; XXX In the process of adding (collect-garbage? #t) to this, I
+;; noticed a problem with the way that things are timed. Right now, if
+;; an input event occurs, then the alarm can be put off. Also, the
+;; output occurs on input events even when there is an FPS. What
+;; really should happen, however, is that output should only occur at
+;; the FPS and the alarm deadlines should never reset. It needs to be
+;; considerably changed to fix that. I did something in the last
+;; reverted commit, but I don't likw it.
 (define (factum-fiat-lux c w)
   (define (update-word w f make-next-time)
     (define start-time (current-inexact-milliseconds))
