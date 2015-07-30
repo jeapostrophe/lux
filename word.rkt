@@ -54,33 +54,40 @@
     (error 'fiat-lux "Not called within call-with-chaos"))
   (factum-fiat-lux c w))
 
+;; xxx try to use (collect-garbage #t)
 (define (factum-fiat-lux c w)
-  (define (update-word w f make-next-time)
+  (define (update-word w last-start-time output? f make-next-time)
     (define start-time (current-inexact-milliseconds))
     (define new-w (f w))
     (match new-w
       [#f
        (word-return w)]
       [_
-       (chaos-output! c (word-output new-w))
-       (define end-time (current-inexact-milliseconds))
-       (define frame-time (fl- end-time start-time))
-       (define new-label
-         (word-label new-w frame-time))
-       (chaos-label! c new-label)
-       (define next-time (make-next-time new-w start-time))
-       (body next-time new-w)]))
+       (when output?
+         (chaos-output! c (word-output new-w))
+         (define end-time (current-inexact-milliseconds))
+         (define frame-time (fl- end-time start-time))
+         (define new-label
+           (word-label new-w frame-time))
+         (chaos-label! c new-label))
+       (define next-start-time
+         (if output? start-time last-start-time))
+       (define next-time (make-next-time new-w next-start-time))
+       (body next-start-time
+             next-time new-w)]))
   (define (compute-next-time start-time fps)
     (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
     (define next-time (fl+ start-time time-incr))
     next-time)
-  (define (body next-time w)
+  (define (body last-start-time next-time w)
     (define input-evt
       (handle-evt
        (choice-evt (word-evt w)
                    (chaos-event c))
        (λ (e)
          (update-word w
+                      last-start-time
+                      (not (fl= 0.0 (word-fps w)))
                       (λ (w)
                         (word-event w e))
                       (λ (new-w start-time)
@@ -94,17 +101,23 @@
        (alarm-evt next-time)
        (λ (_)
          (update-word w
+                      last-start-time
+                      #t
                       word-tick
                       (λ (new-w start-time)
                         (define fps (word-fps new-w))
                         (compute-next-time start-time fps))))))
     (sync/timeout
      (λ ()
+       (define spare-time (fl- next-time (current-inexact-milliseconds)))
+       (when (fl> spare-time 7.0)
+         (eprintf "spare-time: ~v\n" spare-time)
+         (collect-garbage #t))
        (chaos-yield
         c
         (choice-evt input-evt refresh-evt)))
      input-evt))
-  (chaos-swap! c (λ () (body 0 w))))
+  (chaos-swap! c (λ () (body (current-inexact-milliseconds) 0.0 w))))
 
 (provide
  gen:word
