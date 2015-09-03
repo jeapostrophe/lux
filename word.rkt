@@ -68,13 +68,13 @@
     (define new-w (f w))
     (match new-w
       [#f
-       (word-return w)]
+       ((LOG! word-return) w)]
       [_
-       (chaos-output! c (word-output new-w))
+       (chaos-output! c ((LOG! word-output) new-w))
        (define end-time (current-inexact-milliseconds))
        (define frame-time (fl- end-time start-time))
        (define new-label
-         (word-label new-w frame-time))
+         ((LOG! word-label) new-w frame-time))
        (chaos-label! c new-label)
        (define next-time (make-next-time new-w start-time))
        (body next-time new-w)]))
@@ -85,15 +85,15 @@
   (define (body next-time w)
     (define input-evt
       (handle-evt
-       (choice-evt (word-evt w)
+       (choice-evt ((LOG! word-evt) w)
                    (chaos-event c))
        (λ (e)
          (update-word w
                       (λ (w)
-                        (word-event w e))
+                        ((LOG! word-event) w e))
                       (λ (new-w start-time)
-                        (define old-fps (word-fps w))
-                        (define fps (word-fps new-w))
+                        (define old-fps ((LOG! word-fps) w))
+                        (define fps ((LOG! word-fps) new-w))
                         (if (= old-fps fps)
                             next-time
                             (compute-next-time start-time fps)))))))
@@ -102,9 +102,9 @@
        (alarm-evt next-time)
        (λ (_)
          (update-word w
-                      word-tick
+                      (LOG! word-tick)
                       (λ (new-w start-time)
-                        (define fps (word-fps new-w))
+                        (define fps ((LOG! word-fps) new-w))
                         (compute-next-time start-time fps))))))
     (sync/timeout
      (λ ()
@@ -113,6 +113,12 @@
         (choice-evt input-evt refresh-evt)))
      input-evt))
   (chaos-swap! c (λ () (body 0 w))))
+
+(define-syntax-rule (LOG! id)
+  (begin (LOG!* 'id) id))
+(define (LOG!* i)
+  (writeln (cons (current-inexact-milliseconds) i))
+  (flush-output))
 
 (provide
  gen:word
