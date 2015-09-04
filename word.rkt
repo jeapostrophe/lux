@@ -62,57 +62,60 @@
 ;; the FPS and the alarm deadlines should never reset. It needs to be
 ;; considerably changed to fix that. I did something in the last
 ;; reverted commit, but I don't likw it.
+(define (compute-next-time start-time fps)
+  (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
+  (define next-time (fl+ start-time time-incr))
+  next-time)
+
 (define (factum-fiat-lux c w)
-  (define (update-word w f make-next-time)
-    (define start-time (current-inexact-milliseconds))
-    (define new-w (f w))
-    (match new-w
-      [#f
-       ((LOG! word-return) w)]
-      [_
-       (chaos-output! c ((LOG! word-output) new-w))
-       (define end-time (current-inexact-milliseconds))
-       (define frame-time (fl- end-time start-time))
-       (define new-label
-         ((LOG! word-label) new-w frame-time))
-       (chaos-label! c new-label)
-       (define next-time (make-next-time new-w start-time))
-       (body next-time new-w)]))
-  (define (compute-next-time start-time fps)
-    (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
-    (define next-time (fl+ start-time time-incr))
-    next-time)
-  (define (body next-time w)
-    (define input-evt
-      (handle-evt
-       (choice-evt ((LOG! word-evt) w)
-                   (chaos-event c))
-       (λ (e)
-         (update-word w
-                      (λ (w)
-                        ((LOG! word-event) w e))
-                      (λ (new-w start-time)
-                        (define old-fps ((LOG! word-fps) w))
-                        (define fps ((LOG! word-fps) new-w))
-                        (if (= old-fps fps)
-                            next-time
-                            (compute-next-time start-time fps)))))))
-    (define refresh-evt
-      (handle-evt
-       (alarm-evt next-time)
-       (λ (_)
-         (update-word w
-                      (LOG! word-tick)
-                      (λ (new-w start-time)
-                        (define fps ((LOG! word-fps) new-w))
-                        (compute-next-time start-time fps))))))
-    (sync/timeout
-     (λ ()
-       (chaos-yield
-        c
-        (choice-evt input-evt refresh-evt)))
-     input-evt))
-  (chaos-swap! c (λ () (body 0 w))))
+  (define (continue-or-word-return next-w old-w k)
+    (cond
+      [(not next-w)
+       ((LOG! word-return) old-w)]
+      [else
+       (k next-w)]))
+  (define (output&process-input&wait frame-start-time w)
+    (chaos-output! c ((LOG! word-output) w))
+    (define frame-end-time (current-inexact-milliseconds))
+    (define frame-time (- frame-end-time frame-start-time))
+    (define new-label ((LOG! word-label) w frame-time))
+    (chaos-label! c new-label)
+
+    (define fps ((LOG! word-fps) w))
+    (define next-time (compute-next-time frame-end-time fps))
+    (define deadline-evt (alarm-evt next-time))
+    (define input-enabled? (zero? fps))
+
+    (define w-evt ((LOG! word-evt) w))
+    (define c-evt (chaos-event c))
+    (define w-or-c-evt (choice-evt w-evt c-evt))
+
+    (let process-input&wait ([w w])
+      (define wait-evt
+        (handle-evt deadline-evt
+                    (λ (_)
+                      (define next-w ((LOG! word-tick) w))
+                      (continue-or-word-return
+                       next-w w
+                       (λ (next-w)
+                         (output&process-input&wait frame-end-time next-w))))))
+      (define input-evt
+        (handle-evt w-or-c-evt
+                    (λ (e)
+                      (define next-w ((LOG! word-event) w e))
+                      (continue-or-word-return
+                       next-w w
+                       (λ (next-w)
+                         (if input-enabled?
+                             (output&process-input&wait frame-end-time next-w)
+                             (process-input&wait next-w)))))))
+      (define both-evt
+        (choice-evt input-evt wait-evt))
+      (sync/timeout
+       (λ () (chaos-yield c both-evt))
+       input-evt)))
+
+  (chaos-swap! c (λ () (output&process-input&wait (current-inexact-milliseconds) w))))
 
 (define-syntax-rule (LOG! id)
   (begin (LOG!* 'id) id))
