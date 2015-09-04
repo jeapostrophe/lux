@@ -67,61 +67,67 @@
   (define next-time (fl+ start-time time-incr))
   next-time)
 
+(define (continue-or-word-return next-w old-w k)
+  (cond
+    [(not next-w)
+     (word-return old-w)]
+    [else
+     (k next-w)]))
+
 (define (factum-fiat-lux c w)
-  (define (continue-or-word-return next-w old-w k)
-    (cond
-      [(not next-w)
-       ((LOG! word-return) old-w)]
-      [else
-       (k next-w)]))
   (define (output&process-input&wait frame-start-time w)
-    (chaos-output! c ((LOG! word-output) w))
+    (chaos-output! c (word-output w))
     (define frame-end-time (current-inexact-milliseconds))
     (define frame-time (- frame-end-time frame-start-time))
-    (define new-label ((LOG! word-label) w frame-time))
+    (define new-label (word-label w frame-time))
     (chaos-label! c new-label)
 
-    (define fps ((LOG! word-fps) w))
+    (define fps (word-fps w))
     (define next-time (compute-next-time frame-end-time fps))
     (define deadline-evt (alarm-evt next-time))
-    (define input-enabled? (zero? fps))
+    (define input-enabled? (fl= 0.0 fps))
 
-    (define w-evt ((LOG! word-evt) w))
+    (define w-evt (word-evt w))
     (define c-evt (chaos-event c))
     (define w-or-c-evt (choice-evt w-evt c-evt))
 
-    (let process-input&wait ([w w])
-      (define wait-evt
-        (handle-evt deadline-evt
-                    (λ (_)
-                      (define next-w ((LOG! word-tick) w))
-                      (continue-or-word-return
-                       next-w w
-                       (λ (next-w)
-                         (output&process-input&wait frame-end-time next-w))))))
-      (define input-evt
-        (handle-evt w-or-c-evt
-                    (λ (e)
-                      (define next-w ((LOG! word-event) w e))
-                      (continue-or-word-return
-                       next-w w
-                       (λ (next-w)
-                         (if input-enabled?
-                             (output&process-input&wait frame-end-time next-w)
-                             (process-input&wait next-w)))))))
-      (define both-evt
-        (choice-evt input-evt wait-evt))
-      (sync/timeout
-       (λ () (chaos-yield c both-evt))
-       input-evt)))
+    (define continue
+      (λ (next-w)
+        (output&process-input&wait frame-end-time next-w)))
+
+    (define THE-W w)
+    (define wait-evt
+      (handle-evt deadline-evt
+                  (λ (_)
+                    (define next-w (word-tick THE-W))
+                    (continue-or-word-return
+                     next-w THE-W
+                     continue))))
+    (define input-continue
+      (λ (next-w)
+        (cond
+          [input-enabled?
+           (output&process-input&wait frame-end-time next-w)]
+          [else
+           (set! THE-W next-w)
+           (process-input&wait)])))
+    (define input-evt
+      (handle-evt w-or-c-evt
+                  (λ (e)
+                    (define next-w (word-event THE-W e))
+                    (continue-or-word-return
+                     next-w THE-W
+                     input-continue))))
+    (define both-evt
+      (choice-evt input-evt wait-evt))
+    (define timeout-f
+      (λ () (chaos-yield c both-evt)))
+    (define (process-input&wait)
+      (sync/timeout timeout-f input-evt))
+
+    (process-input&wait))
 
   (chaos-swap! c (λ () (output&process-input&wait (current-inexact-milliseconds) w))))
-
-(define-syntax-rule (LOG! id)
-  (begin (LOG!* 'id) id))
-(define (LOG!* i)
-  (writeln (cons (current-inexact-milliseconds) i))
-  (flush-output))
 
 (provide
  gen:word
