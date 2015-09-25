@@ -60,7 +60,10 @@
 
   (define drawer (box void))
   (define (paint-canvas c dc)
-    (define-values (cw ch) (send c get-scaled-client-size))
+    (define-values (cw ch)
+      (if the-hires?
+          (send c get-scaled-client-size)
+          (send c get-client-size)))
     ((unbox drawer) cw ch dc))
 
   ;; (printf "starting at ~v\n" (vector start-x start-y))
@@ -88,6 +91,9 @@
 
   (when (and gl-config opengl-hires?)
     (send gl-config set-hires-mode #t))
+
+  (define the-hires?
+    (and gl-config (send gl-config get-hires-mode)))
 
   (define c
     (new canvas% [parent f]
