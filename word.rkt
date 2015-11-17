@@ -54,14 +54,6 @@
     (error 'fiat-lux "Not called within call-with-chaos"))
   (factum-fiat-lux c w))
 
-;; XXX In the process of adding (collect-garbage? #t) to this, I
-;; noticed a problem with the way that things are timed. Right now, if
-;; an input event occurs, then the alarm can be put off. Also, the
-;; output occurs on input events even when there is an FPS. What
-;; really should happen, however, is that output should only occur at
-;; the FPS and the alarm deadlines should never reset. It needs to be
-;; considerably changed to fix that. I did something in the last
-;; reverted commit, but I don't likw it.
 (define (compute-next-time start-time fps)
   (define time-incr (fl* (fl/ 1.0 fps) 1000.0))
   (define next-time (fl+ start-time time-incr))
@@ -76,11 +68,20 @@
 
 (define (factum-fiat-lux c w)
   (define (output&process-input&wait frame-start-time w)
+    (define pre-output-time (current-inexact-milliseconds))
     (chaos-output! c (word-output w))
     (define frame-end-time (current-inexact-milliseconds))
     (define frame-time (- frame-end-time frame-start-time))
     (define new-label (word-label w frame-time))
     (chaos-label! c new-label)
+
+    ;; XXX This #f should be replaced with something that looks like
+    ;; how much time is remaining in the frame-time budget. Right now
+    ;; with Get Bonus, it is a bit too long to fit. Nevertheless,
+    ;; doing this regularly seems to give about 2ms of delay.
+    (when #f
+      (collect-garbage 'incremental)
+      (collect-garbage 'minor))
 
     (define fps (word-fps w))
     (define next-time (compute-next-time frame-end-time fps))
