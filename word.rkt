@@ -72,16 +72,17 @@
     (chaos-output! c (word-output w))
     (define frame-end-time (current-inexact-milliseconds))
     (define frame-time (- frame-end-time frame-start-time))
+    #;(printf "W: ~v\tG: ~v\tT: ~v\n"
+            (- pre-output-time frame-start-time)
+            (- frame-end-time pre-output-time)
+            frame-time)
     (define new-label (word-label w frame-time))
     (chaos-label! c new-label)
 
-    ;; XXX This #f should be replaced with something that looks like
-    ;; how much time is remaining in the frame-time budget. Right now
-    ;; with Get Bonus, it is a bit too long to fit. Nevertheless,
-    ;; doing this regularly seems to give about 2ms of delay.
-    (when #f
-      (collect-garbage 'incremental)
-      (collect-garbage 'minor))
+    ;; Ideally we could compute how much time we have available for GC
+    ;; and just use that so we never have any pauses. That's a very
+    ;; big wish though.
+    (collect-garbage 'incremental)
 
     (define fps (word-fps w))
     (define next-time (compute-next-time frame-end-time fps))
