@@ -12,7 +12,7 @@
                      "htdp-doc"
                      "pict-doc"
                      "scribble-lib" "racket-doc"))
-(define scribblings '(("scribblings/lux.scrbl" ())))
+(define scribblings '(("scribblings/lux.scrbl" () ("UI"))))
 (define pkg-desc "a simple library for creating real-time graphical apps")
 (define version "0.0")
 (define pkg-authors '(jay))
