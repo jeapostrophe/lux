@@ -20,6 +20,10 @@ interactive programs that consist of plain mathematical functions. It
 is comparable to @racketmodname[2htdp/universe], although designed to
 allow more parameterization of how the program interacts.
 
+Check out some examples in the
+@link["https://github.com/jeapostrophe/lux/tree/master/examples"]{examples}
+directory in the source.
+
 @local-table-of-contents[]
 
 @section{Structure of a @racketmodname[lux] Program}
