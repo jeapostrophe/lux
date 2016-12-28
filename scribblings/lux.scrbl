@@ -183,7 +183,7 @@ height, and the third is the canvas's drawing context.}
 This module provides a helpful function for drawing functional images
 with @racketmodname[lux/chaos/gui].
 
-@defproc[(make-gui-val [#:scale? scale? boolean? #t])
+@defproc[(make-gui/val [#:scale? scale? boolean? #t])
          (-> pict-convertible?
              (-> real? real? (is-a?/c dc<%>) any))]{
 
