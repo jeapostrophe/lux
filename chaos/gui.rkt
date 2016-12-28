@@ -30,8 +30,8 @@
                   #:start-fullscreen? [start-fullscreen? #f]
                   #:icon [icon #f]
                   #:frame-style [frame-style '()]
-                  #:width [the-init-w #f]
-                  #:height [the-init-h #f])
+                  #:width [the-init-w 800]
+                  #:height [the-init-h 600])
   (define-values (start-x start-y init-w init-h)
     (cond
       [start-fullscreen?
@@ -39,7 +39,7 @@
        (define-values (w h) (get-display-size #t))
        (values (* -1 x) (* -1 y) w h)]
       [else
-       (values #f #f 800 600)]))
+       (values #f #f the-init-w the-init-h)]))
 
   ;; xxx start-x/y isn't working
   
