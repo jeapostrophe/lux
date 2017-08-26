@@ -68,8 +68,6 @@
           (send c get-client-size)))
     ((unbox drawer) cw ch dc))
 
-  ;; (printf "starting at ~v\n" (vector start-x start-y))
-
   (define f
     (new gframe%
          [label ""]
