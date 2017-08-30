@@ -140,16 +140,27 @@ This module provides the standard @tech{chaos} that most users of
                    [#:icon icon
                            (or/c #f path-string? (is-a?/c bitmap%))
                            #f]
+                   [#:x x
+                    (or/c exact-nonnegative-integer? (one-of/c 'left 'center 'right))
+                    'center]
+                   [#:y y
+                    (or/c exact-nonnegative-integer? (one-of/c 'top 'center 'bottom))
+                    'center]
                    [#:width width
                             exact-nonnegative-integer?
                             800]
                    [#:height height
                              exact-nonnegative-integer?
-                             600])
+                             600]
+                   [#:monitor monitor
+                    (or/c false/c exact-nonnegative-integer?)
+                    #f])
          chaos?]{
 
-Returns a @tech{chaos} that opens a GUI frame with a canvas to draw
-on. The default size of the frame is
+Returns a @tech{chaos} that opens a GUI frame with a canvas to draw on.
+The frame is placed at position @racket[x],@racket[y] on monitor @racket[monitor];
+if @racket[monitor] is @racket[#f], the monitor containing the mouse pointer is used.
+ The default size of the frame is
 @racket[width]x@racket[height]. The icon for the application is set to
 @racket[icon]. If @racket[start-fullscreen?] is true, then the frame
 is initially fullscreen. The frame's style is set to

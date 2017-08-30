@@ -4,7 +4,8 @@
          racket/contract/base
          racket/gui/base
          racket/async-channel
-         lux/chaos)
+         lux/chaos
+         "gui/utils.rkt")
 
 ;; Robby says that I could rework this to remove the event-ch by
 ;; having capturing the continuation, storing it, and then calling it
@@ -30,8 +31,11 @@
                   #:start-fullscreen? [start-fullscreen? #f]
                   #:icon [icon #f]
                   #:frame-style [frame-style '()]
+                  #:x [the-start-x 'center]
+                  #:y [the-start-y 'center]
                   #:width [the-init-w 800]
-                  #:height [the-init-h 600])
+                  #:height [the-init-h 600]
+                  #:monitor [monitor #f])
   (define-values (start-x start-y init-w init-h)
     (cond
       [start-fullscreen?
@@ -39,10 +43,8 @@
        (define-values (w h) (get-display-size #t))
        (values (* -1 x) (* -1 y) w h)]
       [else
-       (values #f #f the-init-w the-init-h)]))
+       (values the-start-x the-start-y the-init-w the-init-h)]))
 
-  ;; xxx start-x/y isn't working
-  
   (define events-ch (make-async-channel))
   (define gframe%
     (class frame%
@@ -66,13 +68,9 @@
           (send c get-client-size)))
     ((unbox drawer) cw ch dc))
 
-  ;; (printf "starting at ~v\n" (vector start-x start-y))
-
   (define f
     (new gframe%
          [label ""]
-         [x start-x]
-         [y start-y]
          [width init-w]
          [height init-h]
          [style frame-style]))
@@ -111,11 +109,14 @@
      #f)
     (yield the-refresh-sema))
 
-  (cond
-    [start-fullscreen?
-     (send f move start-x start-y)]
-    [else
-     (send f center)])
+  (define-values (x y)
+    (find-x/y start-x
+              start-y
+              #:width (send f get-width)
+              #:height (send f get-height)
+              #:monitor monitor))
+  (send f move x y)
+  
   (send f show #t)
 
   (when icon
@@ -144,8 +145,14 @@
          (listof symbol?)
          #:icon
          (or/c #f path-string? (is-a?/c bitmap%))
+         #:x
+         (or/c exact-nonnegative-integer? (one-of/c 'left 'center 'right))
+         #:y
+         (or/c exact-nonnegative-integer? (one-of/c 'top 'center 'bottom))
          #:width
          exact-nonnegative-integer?
          #:height
-         exact-nonnegative-integer?)
+         exact-nonnegative-integer?
+         #:monitor
+         (or/c false/c exact-nonnegative-integer?))
         chaos?)]))
