@@ -1,6 +1,5 @@
 #lang racket/gui
-(require bazaar/debug
-         racket/contract/base)
+(require racket/contract/base)
 
 (define nnint? nonnegative-integer?)
 (provide
@@ -105,7 +104,7 @@
 (module+ drracket
 
   (define n-displays (get-display-count))
-  (for/list ([d (in-range n-displays)])
+  #;(for/list ([d (in-range n-displays)])
     (define-values (x y)
       (get-display-left-top-inset #:monitor d))
     (define-values (w h)
