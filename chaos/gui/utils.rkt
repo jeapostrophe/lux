@@ -1,7 +1,7 @@
 #lang racket/gui
 (require racket/contract/base)
 
-(define nnint? nonnegative-integer?)
+(define nnint? exact-nonnegative-integer?)
 (provide
  (contract-out
   [get-mouse-x/y
@@ -104,12 +104,12 @@
 (module+ drracket
 
   (define n-displays (get-display-count))
-  #;(for/list ([d (in-range n-displays)])
+  (for/list ([d (in-range n-displays)])
     (define-values (x y)
       (get-display-left-top-inset #:monitor d))
     (define-values (w h)
       (get-display-size #:monitor d))
-    (vars->assoc d x y w h))
+    (list d x y w h))
   
   (define fr
     (new frame%
@@ -129,6 +129,6 @@
                 #:monitor monitor))
     (send fr set-label (format "~a, ~a(~a), ~a(~a)" monitor xx x yy y))
     (send fr move x y)
-    (sleep/yield 1 #;0.5))
+    (sleep/yield 0.25))
   )
 
