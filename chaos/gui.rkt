@@ -41,7 +41,7 @@
       [start-fullscreen?
        (define-values (x y) (get-display-left-top-inset #t))
        (define-values (w h) (get-display-size #t))
-       (values (* -1 x) (* -1 y) w h)]
+       (values x y w h)]
       [else
        (values the-start-x the-start-y the-init-w the-init-h)]))
 
