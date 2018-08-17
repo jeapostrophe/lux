@@ -5,7 +5,7 @@
                ["gui-lib" #:version "1.13"]
                "htdp-lib"
                "pict-lib"
-               "base"
+               ["base" #:version "6.3.0.2"]
                "rackunit-lib"))
 (define build-deps '("draw-doc"
                      "gui-doc"
