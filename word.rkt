@@ -85,7 +85,7 @@
     (collect-garbage 'incremental)
 
     (define fps (word-fps w))
-    (define next-time (compute-next-time frame-end-time fps))
+    (define next-time (compute-next-time frame-start-time #;frame-end-time fps))
     (define deadline-evt (alarm-evt next-time))
     (define input-enabled? (fl= 0.0 fps))
 
