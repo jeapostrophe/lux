@@ -3,6 +3,7 @@
          racket/match
          racket/contract/base
          racket/flonum
+         math/flonum
          racket/format
          racket/generic
          lux/chaos)
@@ -28,6 +29,7 @@
    (define (word-return w) w)])
 
 (define (lux-standard-label l frame-time)
+  (define fps (fl/ 1000.0 frame-time))
   (~a l
       ": "
       "Frame time: "
@@ -36,9 +38,11 @@
           #:precision 1)
       "ms; "
       "FPS: "
-      (~r (fl/ 1000.0 frame-time)
-          #:min-width 10
-          #:precision 2)))
+      (if (flinfinite? fps)
+        "inf"
+        (~r fps
+            #:min-width 10
+            #:precision 2))))
 
 (define current-chaos (make-parameter #f))
 
@@ -73,9 +77,9 @@
     (define frame-end-time (current-inexact-milliseconds))
     (define frame-time (- frame-end-time frame-start-time))
     #;(printf "W: ~v\tG: ~v\tT: ~v\n"
-            (- pre-output-time frame-start-time)
-            (- frame-end-time pre-output-time)
-            frame-time)
+              (- pre-output-time frame-start-time)
+              (- frame-end-time pre-output-time)
+              frame-time)
     (define new-label (word-label w frame-time))
     (chaos-label! c new-label)
 
