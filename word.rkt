@@ -3,7 +3,7 @@
          racket/match
          racket/contract/base
          racket/flonum
-         math/flonum
+         racket/math
          racket/format
          racket/generic
          lux/chaos)
@@ -38,7 +38,7 @@
           #:precision 1)
       "ms; "
       "FPS: "
-      (if (flinfinite? fps)
+      (if (infinite? fps)
         "inf"
         (~r fps
             #:min-width 10
