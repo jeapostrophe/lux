@@ -107,7 +107,39 @@ to mean "no output".}
 
 Returns a value for @racket[w] when the @racketmodname[lux] programs
 stops, which happens if @racket[word-event] or @racket[word-tick]
-return @racket[#f].}
+return @racket[#f]. By default, returns @racket[w].}
+
+@subsection{Word Construction}
+
+A @tech{word} can be created by defining a new @racket[struct] that
+implements the @racket[gen:word] generic interface@";" or, it can be
+defined using @racket[word]. The first method is best when it is easy
+to capture the state of the creation in a structure and the second is
+preferable when it is better to capture the state implicitly in the
+captured closures. In the author's experience, the second is also best
+for creations with complex control flow, because different sorts of
+@tech{word}s can be returned in different circumstances.
+
+@defproc[(word [base (or/c #f word?) #f]
+               [fps real? ....]
+               [label (or/c string? (-> real? string?)) ....]
+               [evt evt? ....]
+               [event (-> any/c (or/c #f word?)) ....]
+               [tick (-> (or/c #f word?)) ....]
+               [output any/c ....]
+               [return any/c ....])
+         word?]{
+
+Return a @tech{word} where the implementations of the methods are as
+given or inherited from @racket[base] or the defaults (described
+above). The only subtleties are that: (1) @racket[label] may be a
+string which is used directly and the frame time is not
+available@";" (2) @racket[event] is a function that only receives the
+generated event@";" (3) @racket[tick] is a thunk. The assumption is
+that the caller of @racket[word] can arrange for the value returned to
+be captured by these closures if necessary.
+
+}
 
 @subsection{Helpers}
 

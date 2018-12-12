@@ -28,6 +28,41 @@
    (define (word-output w) #f)
    (define (word-return w) w)])
 
+(define (default b f d) (if b (f b) d))
+(struct *word (fps label evt event tick output return)
+  #:methods gen:word
+  [(define (word-fps w) (*word-fps w))
+   (define (word-label w ft)
+     (define h (*word-label w))
+     (if (string? h) h (h ft)))
+   (define (word-evt w) (*word-evt w))
+   (define (word-event w e)
+     (define h (*word-event w))
+     (if h (h e) w))
+   (define (word-tick w)
+     (define h (*word-tick w))
+     (if h (h) w))
+   (define (word-output w) (*word-output w))
+   (define (word-return w)
+     (or (*word-return w) w))])
+(define (word [b #f]
+              #:fps [fps (default b word-fps 60.0)]
+              #:label [label (if b
+                               (λ (ft) (word-label b ft))
+                               (λ (ft) (lux-standard-label "Lux" ft)))]
+              #:evt [evt (default b word-evt never-evt)]
+              #:event [event
+                       (if b
+                         (λ (e) (word-event b e))
+                         #f)]
+              #:tick [tick
+                      (if b
+                        (λ () (word-tick b))
+                        #f)]
+              #:output [output (default b word-output #f)]
+              #:return [return (default b word-return #f)])
+  (*word fps label evt event tick output return))
+
 (define (lux-standard-label l frame-time)
   (define fps (fl/ 1000.0 frame-time))
   (~a l
@@ -140,6 +175,15 @@
  (contract-out
   [word?
    (-> any/c word?)]
+  [word (->* () ((or/c #f word?)
+                 #:fps real?
+                 #:label (or/c string? (-> real? string?))
+                 #:evt evt?
+                 #:event (-> any/c (or/c #f word?))
+                 #:tick (-> (or/c #f word?))
+                 #:output any/c
+                 #:return any/c)
+             word?)]
   [lux-standard-label
    (-> string? flonum?
        string?)]
