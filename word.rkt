@@ -28,6 +28,24 @@
    (define (word-output w) #f)
    (define (word-return w) w)])
 
+(module+ generics
+  (provide
+   (contract-out
+    [word-fps
+     (-> word? flonum?)]
+    [word-label
+     (-> word? flonum? string?)]
+    [word-evt
+     (-> word? evt?)]
+    [word-event
+     (-> word? any/c word?)]
+    [word-tick
+     (-> word? word?)]
+    [word-output
+     (-> word? any/c)]
+    [word-return
+     (-> word? any/c)])))
+
 (define (default b f d) (if b (f b) d))
 (struct *word (fps label evt event tick output return)
   #:methods gen:word
