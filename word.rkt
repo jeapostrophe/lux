@@ -170,8 +170,12 @@
 
   (chaos-swap! c (λ () (output&process-input&wait (current-inexact-milliseconds) w))))
 
+(define-syntax-rule (word/rec id . more)
+  (letrec ([id (word . more)]) id))
+
 (provide
  gen:word
+ word/rec
  (contract-out
   [word?
    (-> any/c word?)]

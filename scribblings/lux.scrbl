@@ -121,13 +121,13 @@ for creations with complex control flow, because different sorts of
 @tech{word}s can be returned in different circumstances.
 
 @defproc[(word [base (or/c #f word?) #f]
-               [fps real? ....]
-               [label (or/c string? (-> real? string?)) ....]
-               [evt evt? ....]
-               [event (-> any/c (or/c #f word?)) ....]
-               [tick (-> (or/c #f word?)) ....]
-               [output any/c ....]
-               [return any/c ....])
+               [#:fps fps real? ....]
+               [#:label label (or/c string? (-> real? string?)) ....]
+               [#:evt evt evt? ....]
+               [#:event event (-> any/c (or/c #f word?)) ....]
+               [#:tick tick (-> (or/c #f word?)) ....]
+               [#:output output any/c ....]
+               [#:return return any/c ....])
          word?]{
 
 Return a @tech{word} where the implementations of the methods are as
@@ -140,6 +140,8 @@ that the caller of @racket[word] can arrange for the value returned to
 be captured by these closures if necessary.
 
 }
+
+@defform[(word/rec x:id word-args ...)]{Expands to @racket[(letrec ([x (word word-args ...)]) x)].}
 
 @subsection{Helpers}
 
