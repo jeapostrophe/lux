@@ -179,19 +179,19 @@
  (contract-out
   [word?
    (-> any/c word?)]
-  [word-fps
+  #;[word-fps
    (-> word? flonum?)]
-  [word-label
+  #;[word-label
    (-> word? flonum? string?)]
-  [word-evt
+  #;[word-evt
    (-> word? evt?)]
-  [word-event
+  #;[word-event
    (-> word? any/c word?)]
-  [word-tick
+  #;[word-tick
    (-> word? word?)]
-  [word-output
+  #;[word-output
    (-> word? any/c)]
-  [word-return
+  #;[word-return
    (-> word? any/c)]
   [word (->* () ((or/c #f word?)
                  #:fps real?
