@@ -63,9 +63,11 @@
   (define drawer (box void))
   (define (paint-canvas c dc)
     (define-values (cw ch)
-      (if the-hires?
-          (send c get-scaled-client-size)
-          (send c get-client-size)))
+      (if (or gl-config the-hires?)
+        (if gl-config
+          (send c get-gl-client-size)
+          (send c get-scaled-client-size))
+        (send c get-client-size)))
     ((unbox drawer) cw ch dc))
 
   (define f
