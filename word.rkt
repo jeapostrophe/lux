@@ -84,8 +84,7 @@
 (define (call-with-chaos c t)
   (chaos-start! c)
   (parameterize ([current-chaos c])
-    (begin0 (t)
-      (chaos-stop! c))))
+    (dynamic-wind void t (λ () (chaos-stop! c)))))
 
 (define (fiat-lux w)
   (define c (current-chaos))
