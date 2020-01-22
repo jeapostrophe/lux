@@ -178,20 +178,6 @@
  (contract-out
   [word?
    (-> any/c word?)]
-  #;[word-fps
-   (-> word? flonum?)]
-  #;[word-label
-   (-> word? flonum? string?)]
-  #;[word-evt
-   (-> word? evt?)]
-  #;[word-event
-   (-> word? any/c word?)]
-  #;[word-tick
-   (-> word? word?)]
-  #;[word-output
-   (-> word? any/c)]
-  #;[word-return
-   (-> word? any/c)]
   [word (->* () ((or/c #f word?)
                  #:fps real?
                  #:label (or/c string? (-> real? string?))
@@ -210,3 +196,21 @@
   [fiat-lux
    (-> word?
        any)]))
+
+(module+ generics
+  (provide
+   (contract-out
+    [word-fps
+     (-> word? flonum?)]
+    [word-label
+     (-> word? flonum? string?)]
+    [word-evt
+     (-> word? evt?)]
+    [word-event
+     (-> word? any/c word?)]
+    [word-tick
+     (-> word? word?)]
+    [word-output
+     (-> word? any/c)]
+    [word-return
+     (-> word? any/c)])))
